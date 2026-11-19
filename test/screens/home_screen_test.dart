@@ -11,12 +11,12 @@ class MockSuccessRepo extends KosRepository {
   MockSuccessRepo(this.data);
 
   @override
-  Future<List<KosModel>> getPublicKosList() async => data;
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async => data;
 }
 
 class MockErrorRepo extends KosRepository {
   @override
-  Future<List<KosModel>> getPublicKosList() async => throw Exception('Koneksi internet terputus');
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async => throw Exception('Koneksi internet terputus');
 }
 
 void main() {

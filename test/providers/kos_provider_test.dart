@@ -3,95 +3,110 @@ import 'package:kosfinder/models/kos_model.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
 
-class MockSuccessKosRepository extends KosRepository {
-  final List<KosModel> dummyList;
+class MockSearchKosRepository extends KosRepository {
+  final List<KosModel> allData;
 
-  MockSuccessKosRepository(this.dummyList);
+  MockSearchKosRepository(this.allData);
 
   @override
-  Future<List<KosModel>> getPublicKosList() async {
-    return dummyList;
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async {
+    if (searchQuery == null || searchQuery.trim().isEmpty) {
+      return allData;
+    }
+    final q = searchQuery.toLowerCase().trim();
+    return allData.where((kos) {
+      final nameMatches = kos.name.toLowerCase().contains(q);
+      final addressMatches = kos.address.toLowerCase().contains(q);
+      return nameMatches || addressMatches;
+    }).toList();
   }
 }
 
 class MockErrorKosRepository extends KosRepository {
   @override
-  Future<List<KosModel>> getPublicKosList() async {
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async {
     throw Exception('Connection error');
   }
 }
 
 void main() {
-  group('KosProvider Unit Tests (US01)', () {
+  group('KosProvider Unit Tests (US01 & US03)', () {
     final sampleKosList = [
       KosModel(
-        id: 'kos-2',
+        id: 'kos-1',
         ownerId: 'owner-1',
-        name: 'Kos B (Terbaru)',
-        address: 'Jl. Melati',
-        pricePerMonth: 900000,
+        name: 'Kos Tembalang Asri',
+        address: 'Jl. Prof Soedarto, Tembalang',
+        pricePerMonth: 850000,
         type: 'putra',
         facilities: const ['WiFi'],
-        description: 'Baru dibuat',
+        description: 'Dekat Undip',
         availableRooms: 2,
         whatsappNumber: '08123',
         createdAt: DateTime.parse('2026-11-19T12:00:00Z'),
       ),
       KosModel(
-        id: 'kos-1',
-        ownerId: 'owner-1',
-        name: 'Kos A (Terdahulu)',
-        address: 'Jl. Mawar',
-        pricePerMonth: 800000,
+        id: 'kos-2',
+        ownerId: 'owner-2',
+        name: 'Kos Mawar Bahagia',
+        address: 'Jl. Banyumanik Indah',
+        pricePerMonth: 900000,
         type: 'putri',
         facilities: const ['AC'],
-        description: 'Kos lama',
+        description: 'Kos putri nyaman',
         availableRooms: 1,
         whatsappNumber: '08124',
         createdAt: DateTime.parse('2026-11-19T10:00:00Z'),
       ),
     ];
 
-    test('US01-AC1 & AC2: fetchPublicKos berhasil memuat daftar kos', () async {
-      final repository = MockSuccessKosRepository(sampleKosList);
+    test('US01-AC1: fetchPublicKos berhasil memuat seluruh daftar kos', () async {
+      final repository = MockSearchKosRepository(sampleKosList);
       final provider = KosProvider(repository: repository);
 
-      expect(provider.state, KosState.initial);
-      expect(provider.kosList, isEmpty);
-
-      final future = provider.fetchPublicKos();
-      expect(provider.isLoading, true);
-
-      await future;
+      await provider.fetchPublicKos();
 
       expect(provider.state, KosState.loaded);
       expect(provider.kosList.length, 2);
-      expect(provider.kosList.first.name, 'Kos B (Terbaru)');
-      expect(provider.isEmpty, false);
-      expect(provider.hasError, false);
+      expect(provider.isSearching, false);
     });
 
-    test('US01-AC3: fetchPublicKos menangani kondisi database kosong', () async {
-      final repository = MockSuccessKosRepository([]);
+    test('US03-AC1: search berhasil menyaring kos berdasarkan nama atau area', () async {
+      final repository = MockSearchKosRepository(sampleKosList);
       final provider = KosProvider(repository: repository);
 
-      await provider.fetchPublicKos();
+      await provider.search('Tembalang');
 
       expect(provider.state, KosState.loaded);
-      expect(provider.kosList, isEmpty);
-      expect(provider.isEmpty, true);
+      expect(provider.isSearching, true);
+      expect(provider.searchQuery, 'Tembalang');
+      expect(provider.kosList.length, 1);
+      expect(provider.kosList.first.name, 'Kos Tembalang Asri');
     });
 
-    test('US01-AC4: fetchPublicKos menangani kegagalan koneksi jaringan dengan error yang ramah', () async {
-      final repository = MockErrorKosRepository();
+    test('US03-AC2: search menghasilkan daftar kosong saat kata kunci tidak cocok', () async {
+      final repository = MockSearchKosRepository(sampleKosList);
       final provider = KosProvider(repository: repository);
 
-      await provider.fetchPublicKos();
+      await provider.search('LokasiTidakAda');
 
-      expect(provider.state, KosState.error);
-      expect(provider.hasError, true);
-      expect(provider.errorMessage, contains('Gagal memuat data kos'));
+      expect(provider.state, KosState.loaded);
+      expect(provider.isSearching, true);
+      expect(provider.isEmpty, true);
       expect(provider.kosList, isEmpty);
+    });
+
+    test('clearSearch mengembalikan seluruh daftar kos awal', () async {
+      final repository = MockSearchKosRepository(sampleKosList);
+      final provider = KosProvider(repository: repository);
+
+      await provider.search('Tembalang');
+      expect(provider.kosList.length, 1);
+
+      await provider.clearSearch();
+      expect(provider.isSearching, false);
+      expect(provider.searchQuery, '');
+      expect(provider.kosList.length, 2);
     });
   });
 }

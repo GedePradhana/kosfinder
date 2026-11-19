@@ -9,11 +9,17 @@ class KosRepository {
   SupabaseClient get _supabase => client ?? Supabase.instance.client;
 
   /// Mengambil seluruh daftar kos publik, diurutkan dari yang terbaru (created_at DESC).
-  Future<List<KosModel>> getPublicKosList() async {
-    final response = await _supabase
-        .from('kos')
-        .select()
-        .order('created_at', ascending: false);
+  /// Dapat memfilter berdasarkan kata kunci pencarian (nama atau alamat).
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async {
+    var query = _supabase.from('kos').select();
+
+    final trimmed = searchQuery?.trim();
+    if (trimmed != null && trimmed.isNotEmpty) {
+      // Pencarian case-insensitive pada kolom name ATAU address
+      query = query.or('name.ilike.%$trimmed%,address.ilike.%$trimmed%');
+    }
+
+    final response = await query.order('created_at', ascending: false);
 
     final data = response as List<dynamic>;
     return data

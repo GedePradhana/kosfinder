@@ -30,7 +30,7 @@ Format per task:
 
 | ID | Tujuan | Story & AC Terkait | File yang Boleh Diubah | Cara Menguji | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T06** | Tambahkan fitur pencarian teks bebas (nama kos atau area alamat) pada `KosProvider` dan `KosRepository` | `US03-AC1`, `US03-AC2` | `lib/repositories/kos_repository.dart`, `lib/providers/kos_provider.dart`, `lib/screens/home_screen.dart` | Ketik nama area di search bar `HomeScreen`, verifikasi daftar tersaring sesuai kata kunci, dan muncul pesan "Kos tidak ditemukan" bila tidak ada hasil | `pending` |
+| **T06** | Tambahkan fitur pencarian teks bebas (nama kos atau area alamat) pada `KosProvider` dan `KosRepository` | `US03-AC1`, `US03-AC2` | `lib/repositories/kos_repository.dart`, `lib/providers/kos_provider.dart`, `lib/screens/home_screen.dart` | Ketik nama area di search bar `HomeScreen`, verifikasi daftar tersaring sesuai kata kunci, dan muncul pesan "Kos tidak ditemukan" bila tidak ada hasil | `completed` |
 | **T07** | Implementasi dialog filter harga min-maks dengan validasi input dan integrasi ke daftar kos | `US04-AC1`, `US04-AC2` | `lib/widgets/filter_dialog.dart`, `lib/providers/kos_provider.dart`, `lib/screens/home_screen.dart` | Buka dialog filter, masukkan min & maks, verifikasi daftar tersaring; masukkan min > maks dan pastikan muncul pesan validasi error | `pending` |
 
 ---

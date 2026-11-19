@@ -13,12 +13,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<KosProvider>().fetchPublicKos();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchSubmitted(String value) {
+    context.read<KosProvider>().search(value);
+  }
+
+  void _onClearSearch() {
+    _searchController.clear();
+    context.read<KosProvider>().clearSearch();
   }
 
   @override
@@ -42,104 +59,156 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Consumer<KosProvider>(
-        builder: (context, provider, child) {
-          // 1. Kondisi Loading (Indikator Loading)
-          if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          // 2. Kondisi Error (Koneksi Mati/Gagal & Tombol Coba Lagi)
-          if (provider.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.cloud_off_rounded,
-                      size: 64,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      provider.errorMessage ?? 'Gagal memuat data kos',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        provider.fetchPublicKos();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Coba lagi'),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          // Bar Pencarian Teks Bebas (US03-AC1)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onSubmitted: _onSearchSubmitted,
+              decoration: InputDecoration(
+                hintText: 'Cari nama kos atau area (contoh: Tembalang)...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: _onClearSearch,
+                        tooltip: 'Hapus pencarian',
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
               ),
-            );
-          }
+              onChanged: (val) {
+                // Update icon suffix saat ada/tidak ada teks
+                setState(() {});
+              },
+            ),
+          ),
 
-          // 3. Kondisi Data Kosong
-          if (provider.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: () => provider.fetchPublicKos(),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          // Konten Utama Daftar Kos
+          Expanded(
+            child: Consumer<KosProvider>(
+              builder: (context, provider, child) {
+                // 1. Kondisi Loading
+                if (provider.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                // 2. Kondisi Error (Koneksi Mati/Gagal & Tombol Coba Lagi)
+                if (provider.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.cloud_off_rounded,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            provider.errorMessage ?? 'Gagal memuat data kos',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              provider.fetchPublicKos();
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // 3. Kondisi Data Kosong (Beda pesan saat pencarian vs awal)
+                if (provider.isEmpty) {
+                  final emptyMessage = provider.isSearching
+                      ? 'Kos tidak ditemukan'
+                      : 'Belum ada kos yang terdaftar';
+
+                  return RefreshIndicator(
+                    onRefresh: () => provider.fetchPublicKos(),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        Icon(
-                          Icons.home_work_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Belum ada kos yang terdaftar',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        const SizedBox(height: 100),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                provider.isSearching
+                                    ? Icons.search_off_rounded
+                                    : Icons.home_work_outlined,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                emptyMessage,
+                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              if (provider.isSearching) ...[
+                                const SizedBox(height: 12),
+                                TextButton.icon(
+                                  onPressed: _onClearSearch,
+                                  icon: const Icon(Icons.arrow_back),
+                                  label: const Text('Tampilkan semua kos'),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
+                  );
+                }
 
-          // 4. Kondisi Sukses: Daftar Kos
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchPublicKos(),
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: provider.kosList.length,
-              itemBuilder: (context, index) {
-                final kos = provider.kosList[index];
-                return KosCard(
-                  kos: kos,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailKosScreen(
-                          kosId: kos.id,
-                          initialKos: kos,
-                        ),
-                      ),
-                    );
-                  },
+                // 4. Kondisi Sukses: Daftar Kos
+                return RefreshIndicator(
+                  onRefresh: () => provider.fetchPublicKos(),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: provider.kosList.length,
+                    itemBuilder: (context, index) {
+                      final kos = provider.kosList[index];
+                      return KosCard(
+                        kos: kos,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailKosScreen(
+                                kosId: kos.id,
+                                initialKos: kos,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

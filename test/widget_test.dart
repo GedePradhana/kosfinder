@@ -6,7 +6,7 @@ import 'package:kosfinder/repositories/kos_repository.dart';
 
 class MockTestRepo extends KosRepository {
   @override
-  Future<List<KosModel>> getPublicKosList() async => [];
+  Future<List<KosModel>> getPublicKosList({String? searchQuery}) async => [];
 }
 
 void main() {
