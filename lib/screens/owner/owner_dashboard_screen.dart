@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/kos_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/owner_kos_provider.dart';
+import 'kos_form_screen.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -192,7 +193,10 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigasi ke KosFormScreen mode Tambah (akan dikerjakan pada T12)
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const KosFormScreen()),
+          );
         },
         icon: const Icon(Icons.add),
         label: const Text('Tambah Kos'),
