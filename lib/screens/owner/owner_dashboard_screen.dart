@@ -204,6 +204,53 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     );
   }
 
+  /// US07-AC2: Dialog konfirmasi hapus kos sebelum penghapusan permanen
+  Future<void> _handleDelete(
+    BuildContext context,
+    KosModel kos,
+    OwnerKosProvider provider,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus kos "${kos.name}"?\nTindakan ini tidak dapat dibatalkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await provider.removeKos(kos.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? 'Kos "${kos.name}" berhasil dihapus.'
+                  : provider.errorMessage ?? 'Gagal menghapus kos.',
+            ),
+            backgroundColor: success ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildOwnerKosCard(BuildContext context, KosModel kos, OwnerKosProvider provider) {
     final statusColor = kos.isAvailable ? Colors.green.shade700 : Colors.red.shade700;
 
@@ -264,22 +311,28 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             ),
             const Divider(height: 24),
 
-            // Baris Aksi Navigasi Pemilik (Edit & Hapus - T13)
+            // Baris Aksi Navigasi Pemilik (Edit & Hapus)
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton.icon(
-                  onPressed: () {
-                    // Navigasi ke KosFormScreen mode Edit (akan dihubungkan pada T13)
+                  onPressed: () async {
+                    final edited = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => KosFormScreen(initialKos: kos),
+                      ),
+                    );
+                    if (edited == true && context.mounted) {
+                      provider.fetchMyKos();
+                    }
                   },
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Edit'),
                 ),
                 const SizedBox(width: 8),
                 TextButton.icon(
-                  onPressed: () {
-                    // Konfirmasi dan aksi Hapus (akan dihubungkan pada T13)
-                  },
+                  onPressed: () => _handleDelete(context, kos, provider),
                   style: TextButton.styleFrom(foregroundColor: Colors.red),
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text('Hapus'),

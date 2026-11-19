@@ -6,39 +6,39 @@ import 'package:kosfinder/repositories/owner_kos_repository.dart';
 import 'package:kosfinder/screens/owner/kos_form_screen.dart';
 import 'package:provider/provider.dart';
 
+// ─── Fake Repository ──────────────────────────────────────────────────────────
+
 class FakeOwnerKosRepository extends OwnerKosRepository {
   bool addKosSuccess = true;
+  bool updateKosSuccess = true;
   KosModel? lastAddedKos;
+  KosModel? lastUpdatedKos;
 
   @override
-  Future<List<KosModel>> getMyKosList() async {
-    return [];
-  }
+  Future<List<KosModel>> getMyKosList() async => [];
 
   @override
   Future<KosModel> insertKos(KosModel kos) async {
-    if (!addKosSuccess) {
-      throw Exception('Gagal menambahkan kos');
-    }
+    if (!addKosSuccess) throw Exception('Gagal menambahkan kos');
     lastAddedKos = kos;
     return kos.copyWith(id: 'new-kos-id-123');
   }
 
   @override
   Future<KosModel?> updateKos(KosModel kos) async {
+    if (!updateKosSuccess) return null; // simulasi RLS menolak
+    lastUpdatedKos = kos;
     return kos;
   }
 
   @override
-  Future<bool> deleteKos(String id) async {
-    return true;
-  }
+  Future<bool> deleteKos(String id) async => true;
 
   @override
-  Future<KosModel?> updateAvailability(String kosId, bool isAvailable) async {
-    return null;
-  }
+  Future<KosModel?> updateAvailability(String kosId, bool isAvailable) async => null;
 }
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
 
 Widget createTestWidget({
   required OwnerKosProvider provider,
@@ -52,6 +52,23 @@ Widget createTestWidget({
   );
 }
 
+// Data contoh untuk mode Edit
+final KosModel sampleKos = KosModel(
+  id: 'kos-edit-001',
+  ownerId: 'owner-abc',
+  name: 'Kos Anggrek Lama',
+  address: 'Jl. Lama No. 7, Denpasar',
+  pricePerMonth: 500000,
+  type: 'putri',
+  facilities: const ['AC', 'WiFi'],
+  description: 'Deskripsi lama kos.',
+  availableRooms: 2,
+  whatsappNumber: '081111111111',
+  isAvailable: true,
+);
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
 void main() {
   group('KosFormScreen Tests', () {
     late FakeOwnerKosRepository fakeRepository;
@@ -61,6 +78,8 @@ void main() {
       fakeRepository = FakeOwnerKosRepository();
       ownerKosProvider = OwnerKosProvider(repository: fakeRepository);
     });
+
+    // ── T12: Mode Tambah ──────────────────────────────────────────────────
 
     testWidgets('Menampilkan judul dan elemen form mode tambah', (tester) async {
       await tester.pumpWidget(createTestWidget(provider: ownerKosProvider));
@@ -80,13 +99,11 @@ void main() {
     testWidgets('US06-AC2: Menampilkan pesan error validasi saat form disubmit dalam keadaan kosong', (tester) async {
       await tester.pumpWidget(createTestWidget(provider: ownerKosProvider));
 
-      // Scroll ke tombol simpan dan klik
       final simpanButton = find.text('Simpan Kos');
       await tester.ensureVisible(simpanButton);
       await tester.tap(simpanButton);
       await tester.pumpAndSettle();
 
-      // Cek validasi muncul
       expect(find.text('Nama kos wajib diisi'), findsOneWidget);
       expect(find.text('Alamat lengkap wajib diisi'), findsOneWidget);
       expect(find.text('Harga per bulan wajib diisi'), findsOneWidget);
@@ -95,30 +112,20 @@ void main() {
       expect(find.text('Nomor WhatsApp wajib diisi'), findsOneWidget);
       expect(find.text('Deskripsi kos wajib diisi'), findsOneWidget);
 
-      // Pastikan repository tidak dipanggil
       expect(fakeRepository.lastAddedKos, isNull);
     });
 
-    testWidgets('US06-AC1: Berhasil menyimpan data kos baru saat semua 8 field wajib terisi dengan benar', (tester) async {
+    testWidgets('US06-AC1: Berhasil menyimpan data kos baru saat semua 8 field wajib terisi', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       await tester.pumpWidget(createTestWidget(provider: ownerKosProvider));
 
-      // Isi Nama Kos
-      final nameField = find.widgetWithText(TextFormField, 'Nama Kos *');
-      await tester.enterText(nameField, 'Kos Melati Nyaman');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Nama Kos *'), 'Kos Melati Nyaman');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Alamat Lengkap *'), 'Jl. Mawar No. 15, Singaraja');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Harga per Bulan (Rp) *'), '750000');
 
-      // Isi Alamat Lengkap
-      final addressField = find.widgetWithText(TextFormField, 'Alamat Lengkap *');
-      await tester.enterText(addressField, 'Jl. Mawar No. 15, Singaraja');
-
-      // Isi Harga per Bulan
-      final priceField = find.widgetWithText(TextFormField, 'Harga per Bulan (Rp) *');
-      await tester.enterText(priceField, '750000');
-
-      // Pilih Fasilitas: AC & WiFi
       final acCheckbox = find.widgetWithText(CheckboxListTile, 'AC');
       await tester.ensureVisible(acCheckbox);
       await tester.tap(acCheckbox);
@@ -127,33 +134,26 @@ void main() {
       await tester.ensureVisible(wifiCheckbox);
       await tester.tap(wifiCheckbox);
 
-      // Isi Jumlah Kamar Tersedia
       final roomsField = find.widgetWithText(TextFormField, 'Jumlah Kamar Tersedia *');
       await tester.ensureVisible(roomsField);
       await tester.enterText(roomsField, '4');
 
-      // Isi Nomor WhatsApp
       final waField = find.widgetWithText(TextFormField, 'Nomor WhatsApp Pemilik *');
       await tester.ensureVisible(waField);
       await tester.enterText(waField, '081234567890');
 
-      // Isi Deskripsi
       final descField = find.widgetWithText(TextFormField, 'Deskripsi Kos *');
       await tester.ensureVisible(descField);
       await tester.enterText(descField, 'Kos nyaman, bersih, dekat kampus.');
 
-      // Tap Simpan
       final simpanButton = find.text('Simpan Kos');
       await tester.ensureVisible(simpanButton);
       await tester.tap(simpanButton);
-      await tester.pump(); // trigger frame awal untuk SnackBar
+      await tester.pump();
 
-      // Menampilkan SnackBar sukses
       expect(find.text('Kos berhasil ditambahkan!'), findsOneWidget);
-
       await tester.pumpAndSettle();
 
-      // Verifikasi lastAddedKos
       expect(fakeRepository.lastAddedKos, isNotNull);
       expect(fakeRepository.lastAddedKos!.name, 'Kos Melati Nyaman');
       expect(fakeRepository.lastAddedKos!.address, 'Jl. Mawar No. 15, Singaraja');
@@ -162,6 +162,83 @@ void main() {
       expect(fakeRepository.lastAddedKos!.availableRooms, 4);
       expect(fakeRepository.lastAddedKos!.whatsappNumber, '081234567890');
       expect(fakeRepository.lastAddedKos!.description, 'Kos nyaman, bersih, dekat kampus.');
+    });
+
+    // ── T13: Mode Edit ────────────────────────────────────────────────────
+
+    testWidgets('T13 / US07-AC1: Mode Edit menampilkan judul "Ubah Data Kos" dan field ter-prefill', (tester) async {
+      await tester.pumpWidget(createTestWidget(
+        provider: ownerKosProvider,
+        initialKos: sampleKos,
+      ));
+
+      expect(find.text('Ubah Data Kos'), findsOneWidget);
+      expect(find.text('Simpan Perubahan'), findsOneWidget);
+      // Nilai lama harus sudah terisi
+      expect(find.text('Kos Anggrek Lama'), findsOneWidget);
+      expect(find.text('Jl. Lama No. 7, Denpasar'), findsOneWidget);
+      expect(find.text('500000'), findsOneWidget);
+      expect(find.text('081111111111'), findsOneWidget);
+      expect(find.text('Deskripsi lama kos.'), findsOneWidget);
+    });
+
+    testWidgets('T13 / US07-AC1: Mode Edit berhasil menyimpan perubahan via provider.editKos', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createTestWidget(
+        provider: ownerKosProvider,
+        initialKos: sampleKos,
+      ));
+
+      // Ubah nama kos
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nama Kos *'),
+        'Kos Anggrek Baru',
+      );
+
+      final simpanButton = find.text('Simpan Perubahan');
+      await tester.ensureVisible(simpanButton);
+      await tester.tap(simpanButton);
+      await tester.pump();
+
+      // SnackBar sukses
+      expect(find.text('Kos berhasil diperbarui!'), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      // Verifikasi repository dipanggil dengan data yang benar
+      expect(fakeRepository.lastUpdatedKos, isNotNull);
+      expect(fakeRepository.lastUpdatedKos!.name, 'Kos Anggrek Baru');
+      expect(fakeRepository.lastUpdatedKos!.id, 'kos-edit-001');
+    });
+
+    testWidgets('T13 / US07-AC1: RLS menolak update (bukan pemilik) menampilkan SnackBar error', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      fakeRepository.updateKosSuccess = false;
+
+      await tester.pumpWidget(createTestWidget(
+        provider: ownerKosProvider,
+        initialKos: sampleKos,
+      ));
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nama Kos *'),
+        'Kos Palsu',
+      );
+
+      final simpanButton = find.text('Simpan Perubahan');
+      await tester.ensureVisible(simpanButton);
+      await tester.tap(simpanButton);
+      await tester.pumpAndSettle();
+
+      // SnackBar error harus muncul — pesan dari provider saat RLS tolak
+      expect(find.textContaining('Perubahan ditolak'), findsAtLeast(1));
+      // Data tidak disimpan ke repository
+      expect(fakeRepository.lastUpdatedKos, isNull);
     });
   });
 }
