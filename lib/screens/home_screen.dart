@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/kos_provider.dart';
 import '../widgets/kos_card.dart';
 import 'about_screen.dart';
+import 'detail_kos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -124,7 +125,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 return KosCard(
                   kos: kos,
                   onTap: () {
-                    // Navigasi ke DetailKosScreen akan diimplementasikan pada T05
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailKosScreen(
+                          kosId: kos.id,
+                          initialKos: kos,
+                        ),
+                      ),
+                    );
                   },
                 );
               },
