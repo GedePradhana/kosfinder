@@ -1,76 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:kosfinder/screens/about_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:kosfinder/core/app_config.dart';
+import 'package:kosfinder/providers/kos_provider.dart';
+import 'package:kosfinder/repositories/kos_repository.dart';
+import 'package:kosfinder/screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Supabase hanya jika kredensial diberikan via --dart-define
+  if (AppConfig.isConfigured) {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      // ignore: deprecated_member_use
+      anonKey: AppConfig.supabaseAnonKey,
+    );
+  }
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final KosRepository? kosRepository;
+
+  const MyApp({super.key, this.kosRepository});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'KosFinder',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const HomeScreenPlaceholder(),
-    );
-  }
-}
-
-class HomeScreenPlaceholder extends StatelessWidget {
-  const HomeScreenPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('KosFinder'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'Tentang Aplikasi',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AboutScreen()),
-              );
-            },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => KosProvider(
+            repository: kosRepository ?? KosRepository(),
           ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.home_work_outlined, size: 72, color: Colors.blue),
-            const SizedBox(height: 16),
-            const Text(
-              'Selamat Datang di KosFinder',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Aplikasi pencarian kos sederhana & cepat',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutScreen()),
-                );
-              },
-              icon: const Icon(Icons.info_outline),
-              label: const Text('Buka Halaman About'),
-            ),
-          ],
         ),
+      ],
+      child: MaterialApp(
+        title: 'KosFinder',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const HomeScreen(),
       ),
     );
   }
