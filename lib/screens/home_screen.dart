@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/kos_provider.dart';
+import '../widgets/filter_dialog.dart';
 import '../widgets/kos_card.dart';
 import 'about_screen.dart';
 import 'detail_kos_screen.dart';
@@ -38,8 +40,35 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<KosProvider>().clearSearch();
   }
 
+  String _formatCurrency(int amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  void _showFilterDialog(BuildContext context, KosProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => FilterDialog(
+        initialMinPrice: provider.minPrice,
+        initialMaxPrice: provider.maxPrice,
+        onApply: (min, max) {
+          provider.setPriceFilter(minPrice: min, maxPrice: max);
+        },
+        onReset: () {
+          provider.clearPriceFilter();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final kosProvider = context.watch<KosProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -47,6 +76,18 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          // Tombol Filter Harga
+          IconButton(
+            icon: Badge(
+              isLabelVisible: kosProvider.isFilteredByPrice,
+              child: Icon(
+                kosProvider.isFilteredByPrice ? Icons.filter_alt : Icons.filter_alt_outlined,
+                color: kosProvider.isFilteredByPrice ? Colors.blue : null,
+              ),
+            ),
+            tooltip: 'Filter Harga',
+            onPressed: () => _showFilterDialog(context, kosProvider),
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             tooltip: 'Tentang Aplikasi',
@@ -86,11 +127,50 @@ class _HomeScreenState extends State<HomeScreen> {
                 fillColor: Colors.grey.shade50,
               ),
               onChanged: (val) {
-                // Update icon suffix saat ada/tidak ada teks
                 setState(() {});
               },
             ),
           ),
+
+          // Chip Indikator Filter Harga Aktif (Bisa di-clear langsung)
+          if (kosProvider.isFilteredByPrice)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.tune, size: 16, color: Colors.blue.shade800),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _buildFilterDescription(kosProvider),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.shade900,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => kosProvider.clearPriceFilter(),
+                            child: const Icon(Icons.close, size: 16, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Konten Utama Daftar Kos
           Expanded(
@@ -103,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
 
-                // 2. Kondisi Error (Koneksi Mati/Gagal & Tombol Coba Lagi)
+                // 2. Kondisi Error
                 if (provider.hasError) {
                   return Center(
                     child: Padding(
@@ -136,11 +216,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
 
-                // 3. Kondisi Data Kosong (Beda pesan saat pencarian vs awal)
+                // 3. Kondisi Data Kosong
                 if (provider.isEmpty) {
-                  final emptyMessage = provider.isSearching
-                      ? 'Kos tidak ditemukan'
-                      : 'Belum ada kos yang terdaftar';
+                  final String emptyMessage;
+                  if (provider.isFilteredByPrice && provider.isSearching) {
+                    emptyMessage = 'Kos tidak ditemukan dengan filter dan kata kunci tersebut';
+                  } else if (provider.isFilteredByPrice) {
+                    emptyMessage = 'Tidak ada kos dalam rentang harga ini';
+                  } else if (provider.isSearching) {
+                    emptyMessage = 'Kos tidak ditemukan';
+                  } else {
+                    emptyMessage = 'Belum ada kos yang terdaftar';
+                  }
 
                   return RefreshIndicator(
                     onRefresh: () => provider.fetchPublicKos(),
@@ -153,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                provider.isSearching
+                                (provider.isSearching || provider.isFilteredByPrice)
                                     ? Icons.search_off_rounded
                                     : Icons.home_work_outlined,
                                 size: 64,
@@ -163,9 +250,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 emptyMessage,
                                 style: const TextStyle(fontSize: 16, color: Colors.grey),
+                                textAlign: TextAlign.center,
                               ),
-                              if (provider.isSearching) ...[
+                              if (provider.isFilteredByPrice) ...[
                                 const SizedBox(height: 12),
+                                TextButton.icon(
+                                  onPressed: () => provider.clearPriceFilter(),
+                                  icon: const Icon(Icons.filter_alt_off),
+                                  label: const Text('Hapus filter harga'),
+                                ),
+                              ],
+                              if (provider.isSearching) ...[
+                                const SizedBox(height: 8),
                                 TextButton.icon(
                                   onPressed: _onClearSearch,
                                   icon: const Icon(Icons.arrow_back),
@@ -211,5 +307,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _buildFilterDescription(KosProvider provider) {
+    if (provider.minPrice != null && provider.maxPrice != null) {
+      return '${_formatCurrency(provider.minPrice!)} – ${_formatCurrency(provider.maxPrice!)}';
+    } else if (provider.minPrice != null) {
+      return 'Min ${_formatCurrency(provider.minPrice!)}';
+    } else if (provider.maxPrice != null) {
+      return 'Maks ${_formatCurrency(provider.maxPrice!)}';
+    }
+    return 'Filter Harga';
   }
 }
