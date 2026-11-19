@@ -12,7 +12,7 @@ Format per task:
 | ID | Tujuan | Story & AC Terkait | File yang Boleh Diubah | Cara Menguji | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **T01** | Konfigurasi dependensi dasar, model data `KosModel`, dan inisialisasi environment config (`AppConfig`) dari `--dart-define` | Fondasi `US01` – `US08` | `pubspec.yaml`, `lib/core/app_config.dart`, `lib/models/kos_model.dart`, `test/models/kos_model_test.dart` | Jalankan `flutter test test/models/kos_model_test.dart` untuk verifikasi parsing JSON | `completed` |
-| **T02** | Buat halaman About yang menampilkan identitas pengembang dan tombol navigasi dari halaman awal | Kepatuhan `AGENTS.md` (DoD & Identitas Pengembang) | `lib/screens/about_screen.dart`, `lib/main.dart` | Jalankan aplikasi di browser/device, buka layar About, pastikan tampil teks `2415051030 - I Gede Pradhana Subawa Deningrat` | `pending` |
+| **T02** | Buat halaman About yang menampilkan identitas pengembang dan tombol navigasi dari halaman awal | Kepatuhan `AGENTS.md` (DoD & Identitas Pengembang) | `lib/screens/about_screen.dart`, `lib/main.dart` | Jalankan aplikasi di browser/device, buka layar About, pastikan tampil teks `2415051030 - I Gede Pradhana Subawa Deningrat` | `completed` |
 
 ---
 
