@@ -20,7 +20,7 @@ Format per task:
 
 | ID | Tujuan | Story & AC Terkait | File yang Boleh Diubah | Cara Menguji | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T03** | Implementasi `KosRepository` dan `KosProvider` untuk memuat daftar kos publik urut terbaru dari Supabase | `US01-AC1`, `US01-AC2`, `US01-AC3`, `US01-AC4` | `lib/repositories/kos_repository.dart`, `lib/providers/kos_provider.dart` | Jalankan unit test `test/providers/kos_provider_test.dart` dengan mock/dummy data | `pending` |
+| **T03** | Implementasi `KosRepository` dan `KosProvider` untuk memuat daftar kos publik urut terbaru dari Supabase | `US01-AC1`, `US01-AC2`, `US01-AC3`, `US01-AC4` | `lib/repositories/kos_repository.dart`, `lib/providers/kos_provider.dart` | Jalankan unit test `test/providers/kos_provider_test.dart` dengan mock/dummy data | `completed` |
 | **T04** | Buat layar `HomeScreen` untuk menampilkan daftar kartu kos dengan status ketersediaan (Tersedia/Penuh) sebagai teks, kondisi data kosong, indikator loading, dan penanganan error/retry | `US01-AC1`, `US01-AC2`, `US01-AC3`, `US01-AC4` | `lib/screens/home_screen.dart`, `lib/widgets/kos_card.dart`, `lib/main.dart` | Jalankan aplikasi, verifikasi daftar kos muncul urut terbaru beserta teks status ketersediaan, pesan kosong tampil bila DB kosong, dan pesan error muncul saat offline | `pending` |
 | **T05** | Buat layar `DetailKosScreen` untuk menampilkan 9 informasi lengkap kos (termasuk status ketersediaan) dan integrasi tombol WhatsApp via `url_launcher` | `US02-AC1`, `US02-AC2` | `lib/screens/detail_kos_screen.dart`, `lib/screens/home_screen.dart` | Tap salah satu kos di `HomeScreen`, verifikasi ke-9 informasi (termasuk status) tampil lengkap, tap tombol WhatsApp untuk memicu url_launcher | `pending` |
 
