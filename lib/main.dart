@@ -4,8 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kosfinder/core/app_config.dart';
 import 'package:kosfinder/providers/auth_provider.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
+import 'package:kosfinder/providers/owner_kos_provider.dart';
 import 'package:kosfinder/repositories/auth_repository.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
+import 'package:kosfinder/repositories/owner_kos_repository.dart';
 import 'package:kosfinder/screens/home_screen.dart';
 
 Future<void> main() async {
@@ -26,11 +28,13 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   final KosRepository? kosRepository;
   final AuthRepository? authRepository;
+  final OwnerKosRepository? ownerKosRepository;
 
   const MyApp({
     super.key,
     this.kosRepository,
     this.authRepository,
+    this.ownerKosRepository,
   });
 
   @override
@@ -45,6 +49,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(
             repository: authRepository ?? AuthRepository(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OwnerKosProvider(
+            repository: ownerKosRepository ?? OwnerKosRepository(),
           ),
         ),
       ],
