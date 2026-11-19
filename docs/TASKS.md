@@ -39,7 +39,7 @@ Format per task:
 
 | ID | Tujuan | Story & AC Terkait | File yang Boleh Diubah | Cara Menguji | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T08** | Implementasi `AuthRepository` dan `AuthProvider` untuk registrasi, login, logout, dan manajemen session Supabase Auth | `US05-AC1`, `US05-AC2`, `US05-AC3`, `US05-AC4` | `lib/repositories/auth_repository.dart`, `lib/providers/auth_provider.dart` | Jalankan unit test `test/providers/auth_provider_test.dart` untuk verifikasi alur state autentikasi | `pending` |
+| **T08** | Implementasi `AuthRepository` dan `AuthProvider` untuk registrasi, login, logout, dan manajemen session Supabase Auth | `US05-AC1`, `US05-AC2`, `US05-AC3`, `US05-AC4` | `lib/repositories/auth_repository.dart`, `lib/providers/auth_provider.dart` | Jalankan unit test `test/providers/auth_provider_test.dart` untuk verifikasi alur state autentikasi | `completed` |
 | **T09** | Buat layar `LoginScreen` dan `RegisterScreen` dengan validasi form (email & password $\ge 8$ karakter) dan penanganan error | `US05-AC1`, `US05-AC2`, `US05-AC3`, `US05-AC4` | `lib/screens/auth/login_screen.dart`, `lib/screens/auth/register_screen.dart`, `lib/screens/home_screen.dart` | Masuk ke menu pemilik dari `HomeScreen`, coba register akun baru, verifikasi pesan email duplikat, uji login password salah, dan login sukses | `pending` |
 
 ---
