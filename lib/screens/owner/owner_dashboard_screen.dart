@@ -311,10 +311,28 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             ),
             const Divider(height: 24),
 
-            // Baris Aksi Navigasi Pemilik (Edit & Hapus)
+            // Baris Switch Status Ketersediaan (US08-AC1, US08-AC2) & Aksi Pemilik (Edit & Hapus)
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                Switch(
+                  value: kos.isAvailable,
+                  activeTrackColor: Colors.green.shade200,
+                  activeThumbColor: Colors.green,
+                  onChanged: (bool val) async {
+                    final success = await provider.toggleAvailability(kos.id, kos.isAvailable);
+                    if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            provider.errorMessage ?? 'Gagal mengubah status ketersediaan. Periksa koneksi internet Anda.',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const Spacer(),
                 TextButton.icon(
                   onPressed: () async {
                     final edited = await Navigator.push<bool>(
@@ -330,7 +348,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Edit'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 TextButton.icon(
                   onPressed: () => _handleDelete(context, kos, provider),
                   style: TextButton.styleFrom(foregroundColor: Colors.red),
