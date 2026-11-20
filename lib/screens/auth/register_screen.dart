@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../owner/owner_dashboard_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -38,14 +39,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      // US05-AC1: Akun dibuat dan langsung masuk ke aplikasi
+      // US05-AC1: Akun dibuat dan langsung masuk ke aplikasi (OwnerDashboardScreen)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pendaftaran berhasil! Akun pemilik aktif.'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context, true);
+      if (!context.mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
+      );
     } else {
       // US05-AC2: Tampilkan pesan "Email sudah digunakan" atau error lainnya
       final errorMsg = authProvider.errorMessage ?? 'Gagal mendaftar akun';

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kosfinder/models/kos_model.dart';
 import 'package:kosfinder/providers/auth_provider.dart';
+import 'package:kosfinder/providers/owner_kos_provider.dart';
 import 'package:kosfinder/repositories/auth_repository.dart';
+import 'package:kosfinder/repositories/owner_kos_repository.dart';
 import 'package:kosfinder/screens/auth/register_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -41,6 +44,11 @@ class MockRegisterRepo extends AuthRepository {
     final user = FakeUser(id: 'owner-new', email: email);
     return AuthResponse(user: user, session: FakeSession(user: user));
   }
+}
+
+class MockOwnerKosRepo extends OwnerKosRepository {
+  @override
+  Future<List<KosModel>> getMyKosList() async => [];
 }
 
 void main() {
@@ -103,10 +111,15 @@ void main() {
     testWidgets('US05-AC1: Pendaftaran sukses menampilkan SnackBar sukses', (WidgetTester tester) async {
       final repo = MockRegisterRepo();
       final provider = AuthProvider(repository: repo);
+      final ownerRepo = MockOwnerKosRepo();
+      final ownerProvider = OwnerKosProvider(repository: ownerRepo);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: provider),
+            ChangeNotifierProvider.value(value: ownerProvider),
+          ],
           child: const MaterialApp(home: RegisterScreen()),
         ),
       );

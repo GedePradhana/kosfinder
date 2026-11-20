@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../owner/owner_dashboard_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,14 +36,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Login sukses (US05-AC3) -> Masuk ke halaman pengelolaan kos (kembali ke flow pemilik)
+      // Login sukses (US05-AC3) -> Masuk ke halaman pengelolaan kos (OwnerDashboardScreen)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login berhasil! Selamat datang.'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context, true);
+      if (!context.mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
+      );
     } else {
       // US05-AC4: Tampilkan pesan error jika login gagal
       final errorMsg = authProvider.errorMessage ?? 'Email atau password salah';

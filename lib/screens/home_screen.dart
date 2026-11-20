@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/kos_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/filter_dialog.dart';
 import '../widgets/kos_card.dart';
 import 'about_screen.dart';
 import 'auth/login_screen.dart';
+import 'owner/owner_dashboard_screen.dart';
 import 'detail_kos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -93,10 +95,18 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.account_circle_outlined),
             tooltip: 'Area Pemilik',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
+              final authProvider = context.read<AuthProvider>();
+              if (authProvider.isAuthenticated) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OwnerDashboardScreen()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              }
             },
           ),
           IconButton(
