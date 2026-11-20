@@ -86,6 +86,45 @@ void main() {
       expect(find.text('0 Kamar'), findsOneWidget);
     });
 
+    testWidgets('T15: DetailKosScreen menampilkan badge berwarna untuk status Tersedia', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DetailKosScreen(
+            kosId: 'kos-101',
+            initialKos: sampleKos, // isAvailable: true
+          ),
+        ),
+      );
+
+      final textAvailable = find.text('Tersedia');
+      expect(textAvailable, findsOneWidget);
+      final badgeAvailable = tester.widget<Container>(
+        find.ancestor(of: textAvailable, matching: find.byType(Container)).first,
+      );
+      final decorAvailable = badgeAvailable.decoration as BoxDecoration;
+      expect(decorAvailable.color, Colors.green.shade50);
+    });
+
+    testWidgets('T15: DetailKosScreen menampilkan badge berwarna untuk status Penuh', (WidgetTester tester) async {
+      final fullKos = sampleKos.copyWith(id: 'kos-102', isAvailable: false);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DetailKosScreen(
+            kosId: 'kos-102',
+            initialKos: fullKos,
+          ),
+        ),
+      );
+
+      final textFull = find.text('Penuh');
+      expect(textFull, findsOneWidget);
+      final badgeFull = tester.widget<Container>(
+        find.ancestor(of: textFull, matching: find.byType(Container)).first,
+      );
+      final decorFull = badgeFull.decoration as BoxDecoration;
+      expect(decorFull.color, Colors.red.shade50);
+    });
+
     testWidgets('US02-AC2: Menampilkan pesan error dan tombol Coba lagi saat koneksi gagal', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(

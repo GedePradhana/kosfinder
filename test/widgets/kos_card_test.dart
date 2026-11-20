@@ -61,5 +61,58 @@ void main() {
       expect(find.text('Kos Melati Cantik'), findsOneWidget);
       expect(find.text('Penuh'), findsOneWidget);
     });
+
+    testWidgets('T15: KosCard menampilkan badge berwarna untuk status Tersedia dan Penuh', (WidgetTester tester) async {
+      final kosAvailable = KosModel(
+        id: 'kos-badge-1',
+        ownerId: 'owner-1',
+        name: 'Kos Hijau',
+        address: 'Jl. Hijau',
+        pricePerMonth: 500000,
+        type: 'putra',
+        facilities: const ['WiFi'],
+        description: 'Kos',
+        availableRooms: 1,
+        whatsappNumber: '081',
+        isAvailable: true,
+      );
+
+      final kosFull = kosAvailable.copyWith(
+        id: 'kos-badge-2',
+        name: 'Kos Merah',
+        isAvailable: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                KosCard(kos: kosAvailable),
+                KosCard(kos: kosFull),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Verifikasi Container badge pembungkus teks status
+      final textAvailable = find.text('Tersedia');
+      final textFull = find.text('Penuh');
+      expect(textAvailable, findsOneWidget);
+      expect(textFull, findsOneWidget);
+
+      final badgeAvailable = tester.widget<Container>(
+        find.ancestor(of: textAvailable, matching: find.byType(Container)).first,
+      );
+      final decorationAvailable = badgeAvailable.decoration as BoxDecoration;
+      expect(decorationAvailable.color, Colors.green.shade50);
+
+      final badgeFull = tester.widget<Container>(
+        find.ancestor(of: textFull, matching: find.byType(Container)).first,
+      );
+      final decorationFull = badgeFull.decoration as BoxDecoration;
+      expect(decorationFull.color, Colors.red.shade50);
+    });
   });
 }
