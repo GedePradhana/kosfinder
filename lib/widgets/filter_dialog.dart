@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class FilterDialog extends StatefulWidget {
   final int? initialMinPrice;
@@ -108,6 +109,9 @@ class _FilterDialogState extends State<FilterDialog> {
             TextField(
               controller: _minPriceController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               decoration: InputDecoration(
                 labelText: 'Harga Minimum',
                 prefixText: 'Rp ',
@@ -122,6 +126,9 @@ class _FilterDialogState extends State<FilterDialog> {
             TextField(
               controller: _maxPriceController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               decoration: InputDecoration(
                 labelText: 'Harga Maksimum',
                 prefixText: 'Rp ',

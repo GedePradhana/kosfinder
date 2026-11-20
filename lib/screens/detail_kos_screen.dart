@@ -30,24 +30,31 @@ class _DetailKosScreenState extends State<DetailKosScreen> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? KosRepository();
+    // Selalu ambil detail lengkap (termasuk kontak WhatsApp sesuai US02-AC1 & NFR Privasi)
     if (widget.initialKos != null) {
       _kos = widget.initialKos;
+      // Jika nomor WA belum dimuat (karena data berasal dari daftar publik), ambil detail dari repository
+      if (_kos!.whatsappNumber.isEmpty) {
+        _fetchDetail(silent: true);
+      }
     } else {
       _fetchDetail();
     }
   }
 
-  Future<void> _fetchDetail() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _fetchDetail({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final result = await _repository.getKosDetail(widget.kosId);
       if (result == null) {
         setState(() {
-          _errorMessage = 'Data kos tidak ditemukan.';
+          if (!silent) _errorMessage = 'Data kos tidak ditemukan.';
           _isLoading = false;
         });
       } else {
@@ -58,7 +65,9 @@ class _DetailKosScreenState extends State<DetailKosScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Gagal memuat detail kos. Silakan periksa koneksi internet Anda.';
+        if (!silent) {
+          _errorMessage = 'Gagal memuat detail kos. Silakan periksa koneksi internet Anda.';
+        }
         _isLoading = false;
       });
     }

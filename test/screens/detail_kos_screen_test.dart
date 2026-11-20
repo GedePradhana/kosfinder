@@ -141,5 +141,27 @@ void main() {
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
+
+    testWidgets('NFR Privasi: DetailKosScreen mengambil nomor WhatsApp jika initialKos tidak memiliki whatsappNumber (dari daftar publik)', (WidgetTester tester) async {
+      // Kos dari daftar publik: whatsappNumber kosong
+      final publicKos = sampleKos.copyWith(whatsappNumber: '');
+      final repo = MockDetailSuccessRepo(sampleKos); // Detail lengkap memiliki nomor WA
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DetailKosScreen(
+            kosId: 'kos-101',
+            initialKos: publicKos,
+            repository: repo,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Memastikan nomor kontak WhatsApp pemilik dan tombol WhatsApp tetap tampil
+      expect(find.text('081234567890'), findsOneWidget);
+      expect(find.text('Hubungi via WhatsApp'), findsOneWidget);
+    });
   });
 }

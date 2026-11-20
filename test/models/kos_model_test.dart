@@ -68,6 +68,30 @@ void main() {
       expect(model.pricePerMonth, 0);
       expect(model.type, 'campur');
       expect(model.facilities, isEmpty);
+      expect(model.whatsappNumber, '');
+      expect(model.isAvailable, true);
+    });
+
+    test('NFR Privasi: KosModel berhasil diparsing tanpa kolom whatsapp_number dari daftar publik', () {
+      final publicListJson = <String, dynamic>{
+        'id': 'kos-999',
+        'owner_id': 'owner-999',
+        'name': 'Kos Tanpa WA di Daftar',
+        'address': 'Jl. Kampus',
+        'price_per_month': 500000,
+        'type': 'putra',
+        'facilities': ['WiFi'],
+        'description': 'Kos hemat',
+        'available_rooms': 2,
+        'is_available': true,
+        // whatsapp_number tidak ada dalam respons query publik
+      };
+
+      final model = KosModel.fromJson(publicListJson);
+
+      expect(model.id, 'kos-999');
+      expect(model.name, 'Kos Tanpa WA di Daftar');
+      expect(model.whatsappNumber, isEmpty);
       expect(model.isAvailable, true);
     });
   });

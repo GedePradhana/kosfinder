@@ -18,23 +18,23 @@ Aplikasi ini menggunakan parameter `--dart-define` untuk membaca URL dan Public 
 
 ### 1. Menjalankan di Perangkat Target (Debug / Development)
 
-Ganti `https://lhrweduwcrucijmflxjh.supabase.co` dan `sb_publishable_47co_CHOeutpBUGDVdoyuA_bSlkIn1E` dengan URL dan Public Anon Key Supabase Anda:
+Ganti `<SUPABASE_URL>` dan `<SUPABASE_ANON_KEY>` dengan URL dan Public Anon Key Supabase Anda:
 
 #### PowerShell / Windows Terminal:
 ```powershell
 flutter run -d chrome `
-  --dart-define=SUPABASE_URL=https://lhrweduwcrucijmflxjh.supabase.co `
-  --dart-define=SUPABASE_ANON_KEY=sb_publishable_47co_CHOeutpBUGDVdoyuA_bSlkIn1E
+  --dart-define=SUPABASE_URL=<SUPABASE_URL> `
+  --dart-define=SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
 ```
 
 #### Command Prompt (cmd):
 ```cmd
-flutter run -d chrome --dart-define=SUPABASE_URL=https://contoh-project.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbgciOiAiSFUzNTI1NiIsInR5cCI6ICJKV1QiLCJhbGciOiAiSFMyNTYifQ.contoh_anon_key_palsu_123456
+flutter run -d chrome --dart-define=SUPABASE_URL=<SUPABASE_URL> --dart-define=SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
 ```
 
 #### Android Device / Emulator:
 ```bash
-flutter run -d android --dart-define=SUPABASE_URL=https://contoh-project.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbgciOiAiSFUzNTI1NiIsInR5cCI6ICJKV1QiLCJhbGciOiAiSFMyNTYifQ.contoh_anon_key_palsu_123456
+flutter run -d android --dart-define=SUPABASE_URL=<SUPABASE_URL> --dart-define=SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
 ```
 
 ---

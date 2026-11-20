@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/kos_model.dart';
 import '../../providers/owner_kos_provider.dart';
@@ -298,6 +299,9 @@ class _KosFormScreenState extends State<KosFormScreen> {
               TextFormField(
                 controller: _whatsappController,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
                 decoration: InputDecoration(
                   labelText: 'Nomor WhatsApp Pemilik *',
                   hintText: 'Contoh: 081234567890',
@@ -308,7 +312,11 @@ class _KosFormScreenState extends State<KosFormScreen> {
                   if (val == null || val.trim().isEmpty) {
                     return 'Nomor WhatsApp wajib diisi';
                   }
-                  if (val.trim().length < 9) {
+                  final trimmed = val.trim();
+                  if (!RegExp(r'^\d+$').hasMatch(trimmed)) {
+                    return 'Nomor WhatsApp hanya boleh berupa angka';
+                  }
+                  if (trimmed.length < 9) {
                     return 'Nomor WhatsApp minimal 9 digit';
                   }
                   return null;

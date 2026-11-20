@@ -115,6 +115,52 @@ void main() {
       expect(fakeRepository.lastAddedKos, isNull);
     });
 
+    testWidgets('US06-AC2: Nomor WhatsApp hanya menerima angka dan minimal 9 digit', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createTestWidget(provider: ownerKosProvider));
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'Nama Kos *'), 'Kos Angka');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Alamat Lengkap *'), 'Jl. Angka No. 1');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Harga per Bulan (Rp) *'), '500000');
+
+      final acCheckbox = find.widgetWithText(CheckboxListTile, 'AC');
+      await tester.ensureVisible(acCheckbox);
+      await tester.tap(acCheckbox);
+
+      final roomsField = find.widgetWithText(TextFormField, 'Jumlah Kamar Tersedia *');
+      await tester.ensureVisible(roomsField);
+      await tester.enterText(roomsField, '1');
+
+      final descField = find.widgetWithText(TextFormField, 'Deskripsi Kos *');
+      await tester.ensureVisible(descField);
+      await tester.enterText(descField, 'Deskripsi kos.');
+
+      final waField = find.widgetWithText(TextFormField, 'Nomor WhatsApp Pemilik *');
+      await tester.ensureVisible(waField);
+
+      // Coba masukkan kurang dari 9 digit
+      await tester.enterText(waField, '08123');
+      final simpanButton = find.text('Simpan Kos');
+      await tester.ensureVisible(simpanButton);
+      await tester.tap(simpanButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nomor WhatsApp minimal 9 digit'), findsOneWidget);
+
+      // Verifikasi input formatter menolak karakter non-digit (misal saat paste atau ketik teks)
+      await tester.enterText(waField, '081234abc5678');
+      // Karena FilteringTextInputFormatter.digitsOnly, teks 'abc' tereliminasi
+      expect((tester.widget(waField) as TextFormField).controller?.text, '0812345678');
+
+      // Submit kembali setelah format valid
+      await tester.tap(simpanButton);
+      await tester.pumpAndSettle();
+      expect(fakeRepository.lastAddedKos?.whatsappNumber, '0812345678');
+    });
+
     testWidgets('US06-AC1: Berhasil menyimpan data kos baru saat semua 8 field wajib terisi', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;

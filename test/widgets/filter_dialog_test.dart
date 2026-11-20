@@ -4,6 +4,30 @@ import 'package:kosfinder/widgets/filter_dialog.dart';
 
 void main() {
   group('FilterDialog Widget Tests (US04)', () {
+    testWidgets('US04-AC1: Input min dan max memfilter karakter non-digit dengan digitsOnly formatter', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FilterDialog(
+              onApply: (min, max) {},
+              onReset: () {},
+            ),
+          ),
+        ),
+      );
+
+      final textFields = find.byType(TextField);
+      expect(textFields, findsNWidgets(2));
+
+      // Masukkan teks bercampur karakter non-angka (misal hasil paste '500abc000')
+      await tester.enterText(textFields.at(0), '500abc000');
+      await tester.enterText(textFields.at(1), '1000xyz000');
+
+      // Formatter digitsOnly harus membuang karakter non-digit
+      expect((tester.widget(textFields.at(0)) as TextField).controller?.text, '500000');
+      expect((tester.widget(textFields.at(1)) as TextField).controller?.text, '1000000');
+    });
+
     testWidgets('US04-AC1: Memasukkan min & maks yang valid dan menekan Terapkan memanggil onApply', (WidgetTester tester) async {
       int? receivedMin;
       int? receivedMax;
